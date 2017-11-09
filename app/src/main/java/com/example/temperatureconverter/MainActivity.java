@@ -1,6 +1,8 @@
 package com.example.temperatureconverter;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -8,6 +10,7 @@ import android.widget.RadioButton;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+    public static final String CONVERSION_READABLE_RESULT = "conversion_readable_result";
     private EditText text;
 
     @Override
@@ -31,19 +34,49 @@ public class MainActivity extends Activity {
                     return;
                 }
 
+
+
                 float inputValue = Float.parseFloat(text.getText().toString());
-                if (celsiusButton.isChecked()) {
-                    text.setText(String
-                            .valueOf(ConverterUtil.convertFahrenheitToCelsius(inputValue)));
-                    celsiusButton.setChecked(false);
-                    fahrenheitButton.setChecked(true);
-                } else {
-                    text.setText(String
-                            .valueOf(ConverterUtil.convertCelsiusToFahrenheit(inputValue)));
-                    fahrenheitButton.setChecked(false);
-                    celsiusButton.setChecked(true);
-                }
+                Intent display = createDisplayIntent(this, inputValue, ! celsiusButton.isChecked());
+                fahrenheitButton.setChecked(celsiusButton.isChecked());
+                celsiusButton.setChecked(! celsiusButton.isChecked());
+
+                startActivity(display);
                 break;
         }
+    }
+
+    static Intent createDisplayIntent(Context context, Float inputValue, boolean fromC)
+    {
+        float c,f;
+
+        if(fromC) {
+            f = ConverterUtil.convertCelsiusToFahrenheit(inputValue);
+            c = inputValue;
+        }
+        else {
+            c = ConverterUtil.convertFahrenheitToCelsius(inputValue);
+            f = inputValue;
+        }
+
+        String cs = fmt(c) + "C";
+        String fs = fmt(f) + "F";
+        String result;
+        if(fromC)
+            result = cs + " is " + fs;
+        else
+            result = fs + " is " + cs;
+
+        Intent launcher = new Intent(context, DisplayConversionResult.class);
+        launcher.putExtra(CONVERSION_READABLE_RESULT, result);
+        return launcher;
+    }
+
+    public static String fmt(float d)
+    {
+        if(d == (long) d)
+            return String.format("%d",(long)d);
+        else
+            return String.format("%s",d);
     }
 }
